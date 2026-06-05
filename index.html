@@ -86,7 +86,7 @@
   .watch-checkbox:checked::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--bg);font-size:9px;font-weight:700;line-height:1;}
   .watch-checkbox:hover:not(:checked){border-color:var(--watched);}
   /* GRID */
-  .movies-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);}
+  .movies-grid{display:none;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);}
   .movies-grid.active{display:grid;}
   .movie-card{background:var(--surface);cursor:pointer;transition:background 0.15s;position:relative;display:flex;flex-direction:column;}
   .movie-card:hover{background:var(--surface2);}
@@ -156,7 +156,11 @@
   .modal-field-label{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.2rem;}
   .modal-field-value{font-size:0.82rem;color:var(--text);line-height:1.4;}
   .modal-note{background:var(--surface2);border-left:3px solid var(--accent);padding:0.9rem;font-size:0.8rem;line-height:1.6;color:var(--text-dim);margin-bottom:0.9rem;font-style:italic;}
-  .modal-tags-row{display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:1.25rem;}
+  .modal-tags-row{display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.85rem;}
+  .modal-links{display:flex;gap:0.5rem;flex-wrap:wrap;padding-top:0.75rem;border-top:1px solid var(--border);}
+  .modal-link{font-family:'DM Mono',monospace;font-size:0.65rem;padding:0.28rem 0.75rem;border:1px solid var(--border);border-radius:3px;color:var(--text-dim);text-decoration:none;display:inline-flex;align-items:center;gap:0.4rem;transition:all 0.15s;letter-spacing:0.05em;}
+  .modal-link.imdb:hover{border-color:#f5c518;color:#f5c518;}
+  .modal-link.wiki:hover{border-color:var(--text);color:var(--text);}
   .modal-tag{font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.22rem 0.55rem;border:1px solid var(--border);border-radius:2px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em;}
   .modal-close{position:absolute;top:0.9rem;right:0.9rem;background:none;border:1px solid var(--border);color:var(--text-dim);width:26px;height:26px;border-radius:2px;cursor:pointer;font-size:0.75rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s;z-index:10;}
   .modal-close:hover{border-color:var(--accent2);color:var(--accent2);}
@@ -261,6 +265,23 @@
       <button class="pill" data-filter="genre" data-value="Heist">Heist/Con</button>
       <button class="pill" data-filter="genre" data-value="Legal Thriller">Legal</button>
       <button class="pill" data-filter="genre" data-value="Survival Thriller">Survival</button>
+    </div>
+  </div>
+  <div class="filter-section">
+    <div class="filter-title">Theme / Tag</div>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="tag" data-value="all">All</button>
+      <button class="pill" data-filter="tag" data-value="True Story">True Story</button>
+      <button class="pill" data-filter="tag" data-value="National Award">Nat. Award</button>
+      <button class="pill" data-filter="tag" data-value="Debut">Debut</button>
+      <button class="pill" data-filter="tag" data-value="Non-Linear">Non-Linear</button>
+      <button class="pill" data-filter="tag" data-value="No Songs">No Songs</button>
+      <button class="pill" data-filter="tag" data-value="Neo-Noir">Neo-Noir</button>
+      <button class="pill" data-filter="tag" data-value="Cult">Cult</button>
+      <button class="pill" data-filter="tag" data-value="AR Rahman">AR Rahman</button>
+      <button class="pill" data-filter="tag" data-value="Ilaiyaraaja">Ilaiyaraaja</button>
+      <button class="pill" data-filter="tag" data-value="Caste">Caste / Dalit</button>
+      <button class="pill" data-filter="tag" data-value="Period">Period</button>
     </div>
   </div>
   <div class="filter-section">
@@ -403,6 +424,7 @@
         <div style="grid-column:span 2"><div class="modal-field-label">Key Cast</div><div class="modal-field-value" id="modalCast"></div></div>
       </div>
       <div class="modal-tags-row" id="modalTags"></div>
+      <div class="modal-links" id="modalLinks"></div>
     </div>
   </div>
 </div>
@@ -437,7 +459,7 @@ try {
 
 function saveWatched() { localStorage.setItem(STORAGE_KEY, JSON.stringify([...watchedSet])); }
 
-let activeFilters = {lang:'all',genre:'all',era:'all',rating:'all',reco:'all',actor:'all',director:'all',watched:'all'};
+let activeFilters = {lang:'all',genre:'all',era:'all',rating:'all',reco:'all',actor:'all',director:'all',watched:'all',tag:'all'};
 let searchQuery = '';
 let sortBy = 'rating-desc';
 let currentModalId = null;
@@ -453,6 +475,18 @@ function matchesFilters(m) {
   if (activeFilters.director !== 'all' && !m.director.includes(activeFilters.director)) return false;
   if (activeFilters.watched === 'watched' && !watchedSet.has(m.id)) return false;
   if (activeFilters.watched === 'unwatched' && watchedSet.has(m.id)) return false;
+  if (activeFilters.tag !== 'all') {
+    const tv = activeFilters.tag.toLowerCase();
+    const hit = m.tags.some(t => {
+      const tl = t.toLowerCase();
+      // Group caste/dalit themed films under one pill
+      if (tv === 'caste') return tl.includes('caste') || tl.includes('dalit');
+      // "Period" matches tags with year patterns or the word period
+      if (tv === 'period') return tl.includes('period') || /\b(19|20)\d0s\b/.test(tl) || /\b19\d\d\b/.test(tl);
+      return tl.includes(tv);
+    });
+    if (!hit) return false;
+  }
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     const inTags = m.tags.some(t => t.toLowerCase().includes(q));
@@ -627,6 +661,13 @@ function openModal(m) {
   document.getElementById('modalGenre').textContent = m.genre;
   document.getElementById('modalCast').textContent = m.cast;
   document.getElementById('modalTags').innerHTML = m.tags.map(t => `<span class="modal-tag">${esc(t)}</span>`).join('');
+  const wikiUrl  = m.wiki ? `https://en.wikipedia.org/wiki/${encodeURIComponent(m.wiki.replace(/ /g,'_'))}` : null;
+  const imdbUrl  = m.imdb
+    ? `https://www.imdb.com/title/${esc(m.imdb)}/`
+    : `https://www.imdb.com/find?q=${encodeURIComponent(m.title + ' ' + m.year)}`;
+  document.getElementById('modalLinks').innerHTML =
+    (wikiUrl ? `<a href="${esc(wikiUrl)}" class="modal-link wiki" target="_blank" rel="noopener">📖 Wikipedia</a>` : '') +
+    `<a href="${esc(imdbUrl)}" class="modal-link imdb" target="_blank" rel="noopener">⭐ IMDb</a>`;
   refreshModalBtn(m.id);
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -666,7 +707,7 @@ document.getElementById('searchInput').addEventListener('input', e => { searchQu
 document.getElementById('sortSelect').addEventListener('change', e => { sortBy = e.target.value; render(); });
 
 document.getElementById('resetBtn').addEventListener('click', () => {
-  activeFilters = {lang:'all',genre:'all',era:'all',rating:'all',reco:'all',actor:'all',director:'all',watched:'all'};
+  activeFilters = {lang:'all',genre:'all',era:'all',rating:'all',reco:'all',actor:'all',director:'all',watched:'all',tag:'all'};
   searchQuery = '';
   sortBy = 'rating-desc';
   document.getElementById('searchInput').value = '';
