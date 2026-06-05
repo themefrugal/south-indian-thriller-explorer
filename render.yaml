@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: south-indian-thriller-explorer
+    runtime: static
+    staticPublishPath: .
+    buildCommand: ""
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=3600
+      - path: /movies.js
+        name: Cache-Control
+        value: public, max-age=86400

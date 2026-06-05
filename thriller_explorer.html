@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>South Indian Thriller Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--accent:#e8c547;--accent2:#c0392b;--text:#e8e6f0;--text-dim:#8a8a9a;--text-dimmer:#4a4a5a;--tamil:#e8734a;--malayalam:#4a9ee8;--reco:#7bc67e;--watched:#7bc67e;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:0.5;}
+  header{padding:3rem 2rem 2rem;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+  header::after{content:'THRILLER';position:absolute;right:-2rem;top:50%;transform:translateY(-50%);font-family:'Playfair Display',serif;font-size:8rem;font-weight:900;color:rgba(232,197,71,0.04);letter-spacing:-0.05em;pointer-events:none;white-space:nowrap;}
+  .header-inner{max-width:1400px;margin:0 auto;}
+  .eyebrow{font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.2em;color:var(--accent);text-transform:uppercase;margin-bottom:0.75rem;}
+  h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:900;line-height:1.05;letter-spacing:-0.02em;}
+  h1 em{font-style:italic;color:var(--accent);}
+  .header-meta{margin-top:1rem;font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text-dim);display:flex;gap:2rem;flex-wrap:wrap;}
+  .header-meta span{display:flex;align-items:center;gap:0.4rem;}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .dot-tamil{background:var(--tamil)}.dot-mal{background:var(--malayalam)}.dot-reco{background:var(--reco)}.dot-watched{background:var(--watched)}
+  .main{max-width:1400px;margin:0 auto;padding:0 2rem 4rem;display:grid;grid-template-columns:280px 1fr;gap:0;align-items:start;}
+  .sidebar{padding:2rem 1.5rem 2rem 0;border-right:1px solid var(--border);position:sticky;top:0;max-height:100vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+  .sidebar::-webkit-scrollbar{width:4px;}.sidebar::-webkit-scrollbar-track{background:transparent;}.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .filter-section{margin-bottom:1.5rem;}
+  .filter-title{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dimmer);text-transform:uppercase;margin-bottom:0.6rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border);}
+  .filter-pills{display:flex;flex-wrap:wrap;gap:0.35rem;}
+  .pill{font-family:'DM Mono',monospace;font-size:0.68rem;padding:0.3rem 0.65rem;border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all 0.15s;color:var(--text-dim);background:transparent;white-space:nowrap;}
+  .pill:hover{border-color:var(--accent);color:var(--accent);}
+  .pill.active{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:500;}
+  .pill.lang-tamil.active{background:var(--tamil);border-color:var(--tamil);}
+  .pill.lang-malayalam.active{background:var(--malayalam);border-color:var(--malayalam);}
+  .pill.watched-filter.active{background:#1e3a1e;border-color:var(--watched);color:var(--watched);}
+  .search-wrap{position:relative;margin-bottom:1.25rem;}
+  .search-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:0.6rem 0.75rem 0.6rem 2.2rem;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;transition:border-color 0.15s;}
+  .search-input:focus{border-color:var(--accent);}
+  .search-input::placeholder{color:var(--text-dimmer);}
+  .search-icon{position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);color:var(--text-dimmer);font-size:0.8rem;pointer-events:none;}
+  .reset-btn{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent2);background:none;border:1px solid var(--accent2);border-radius:3px;padding:0.3rem 0.6rem;cursor:pointer;transition:all 0.15s;margin-top:0.5rem;width:100%;}
+  .reset-btn:hover{background:var(--accent2);color:white;}
+  /* SUMMARY */
+  .summary-panel{background:var(--surface2);border:1px solid var(--border);border-radius:3px;margin-bottom:1.5rem;overflow:hidden;}
+  .summary-header{display:flex;align-items:center;justify-content:space-between;padding:0.65rem 1rem;background:var(--surface);border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
+  .summary-header-left{font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:0.5rem;}
+  .summary-toggle{font-size:0.7rem;color:var(--text-dimmer);transition:transform 0.2s;}
+  .summary-toggle.open{transform:rotate(180deg);}
+  .summary-body{padding:0.85rem;display:none;}
+  .summary-body.open{display:block;}
+  .summary-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:0.85rem;}
+  .stat-cell{background:var(--surface);padding:0.6rem 0.4rem;text-align:center;}
+  .stat-number{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;line-height:1;margin-bottom:0.2rem;}
+  .stat-number.wc{color:var(--watched)}.stat-number.vc{color:var(--accent)}.stat-number.pc{color:var(--text-dim)}
+  .stat-label{font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:0.1em;}
+  .progress-wrap{margin-bottom:0.75rem;}
+  .progress-label-row{display:flex;justify-content:space-between;margin-bottom:0.25rem;}
+  .progress-label{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:0.08em;}
+  .progress-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--watched);border-radius:3px;transition:width 0.4s ease;}
+  .breakdown-section{margin-bottom:0.85rem;}
+  .breakdown-title{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.4rem;}
+  .breakdown-rows{display:flex;flex-direction:column;gap:4px;}
+  .breakdown-row{display:grid;grid-template-columns:90px 1fr 40px;align-items:center;gap:5px;}
+  .breakdown-key{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .breakdown-bar-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+  .breakdown-bar{height:100%;border-radius:2px;transition:width 0.3s;}
+  .tb{background:var(--tamil)}.mb{background:var(--malayalam)}.wb{background:var(--watched)}.gb{background:var(--accent);opacity:0.7}
+  .breakdown-val{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text-dimmer);text-align:right;}
+  .reco-pill-badge{font-family:'DM Mono',monospace;font-size:0.6rem;background:rgba(123,198,126,0.12);border:1px solid rgba(123,198,126,0.3);color:var(--reco);padding:0.2rem 0.5rem;border-radius:2px;white-space:nowrap;}
+  .clear-watched-btn{font-family:'DM Mono',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dimmer);background:none;border:1px solid var(--border);border-radius:2px;padding:0.25rem 0.5rem;cursor:pointer;transition:all 0.15s;margin-top:0.5rem;width:100%;}
+  .clear-watched-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+  /* CONTENT */
+  .content{padding:2rem 0 2rem 2rem;}
+  .stats-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+  .count-display{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text-dim);}
+  .count-display strong{color:var(--accent);font-size:1.1rem;}
+  .sort-wrap{display:flex;align-items:center;gap:0.5rem;}
+  .sort-label{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text-dimmer);letter-spacing:0.1em;text-transform:uppercase;}
+  .sort-select{font-family:'DM Mono',monospace;font-size:0.7rem;background:var(--surface);border:1px solid var(--border);border-radius:3px;color:var(--text);padding:0.3rem 0.5rem;outline:none;cursor:pointer;}
+  .view-toggle{display:flex;gap:0.3rem;}
+  .view-btn{background:none;border:1px solid var(--border);border-radius:3px;padding:0.3rem 0.5rem;cursor:pointer;color:var(--text-dimmer);transition:all 0.15s;font-size:0.8rem;}
+  .view-btn.active{border-color:var(--accent);color:var(--accent);}
+  /* CHECKBOX */
+  .watch-checkbox{appearance:none;-webkit-appearance:none;width:15px;height:15px;border:1px solid var(--border);border-radius:2px;cursor:pointer;flex-shrink:0;background:transparent;position:relative;transition:all 0.12s;}
+  .watch-checkbox:checked{background:var(--watched);border-color:var(--watched);}
+  .watch-checkbox:checked::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--bg);font-size:9px;font-weight:700;line-height:1;}
+  .watch-checkbox:hover:not(:checked){border-color:var(--watched);}
+  /* GRID */
+  .movies-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);}
+  .movies-grid.active{display:grid;}
+  .movie-card{background:var(--surface);cursor:pointer;transition:background 0.15s;position:relative;display:flex;flex-direction:column;}
+  .movie-card:hover{background:var(--surface2);}
+  .movie-card.is-watched{background:rgba(123,198,126,0.04);}
+  .movie-card.is-watched:hover{background:rgba(123,198,126,0.08);}
+  .card-lang-bar{position:absolute;top:0;left:0;width:3px;height:100%;z-index:1;}
+  .card-lang-bar.tamil{background:var(--tamil)}.card-lang-bar.malayalam{background:var(--malayalam)}
+  .card-poster{width:100%;height:155px;overflow:hidden;flex-shrink:0;background:var(--surface2);position:relative;}
+  .card-poster img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;}
+  .card-poster-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--surface2) 0%,var(--bg) 100%);}
+  .card-poster-placeholder-icon{font-size:2rem;opacity:0.15;}
+  .card-content{padding:0.9rem;display:flex;flex-direction:column;gap:0.4rem;flex:1;}
+  .card-top-row{display:flex;align-items:center;justify-content:space-between;}
+  .card-year{font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text-dimmer);}
+  .card-watch-wrap{display:flex;align-items:center;gap:0.3rem;}
+  .card-watch-label{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--text-dimmer);}
+  .watched-badge{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--watched);display:none;}
+  .movie-card.is-watched .watched-badge{display:inline;}
+  .movie-card.is-watched .card-watch-label{color:var(--watched);}
+  .card-title{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;line-height:1.2;color:var(--text);}
+  .card-director{font-size:0.68rem;color:var(--text-dim);}
+  .card-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:0.4rem;}
+  .card-rating{font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:500;color:var(--accent);}
+  .card-rating::before{content:'★ ';}
+  .reco-star{color:var(--reco);font-size:0.65rem;font-family:'DM Mono',monospace;}
+  .card-tags{display:flex;flex-wrap:wrap;gap:0.2rem;margin-top:0.2rem;}
+  .tag{font-family:'DM Mono',monospace;font-size:0.52rem;padding:0.12rem 0.35rem;border:1px solid var(--border);border-radius:2px;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:0.04em;}
+  /* LIST */
+  .movies-list{display:none;}
+  .movies-list.active{display:block;}
+  .list-header{display:grid;grid-template-columns:3px 32px 65px 1fr 110px 75px 55px 45px;background:var(--surface2);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:0.1em;}
+  .list-header div{padding:0.45rem 0.65rem;}
+  .list-item{display:grid;grid-template-columns:3px 32px 65px 1fr 110px 75px 55px 45px;align-items:center;border-bottom:1px solid var(--border);background:var(--surface);transition:background 0.15s;}
+  .list-item:hover{background:var(--surface2);}
+  .list-item.is-watched{background:rgba(123,198,126,0.04);}
+  .list-lang-bar{height:100%;min-height:50px;}
+  .list-lang-bar.tamil{background:var(--tamil)}.list-lang-bar.malayalam{background:var(--malayalam)}
+  .list-check{display:flex;align-items:center;justify-content:center;padding:0 0.2rem;}
+  .list-year{font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--text-dimmer);padding:0 0.65rem;text-align:center;}
+  .list-title-wrap{padding:0.85rem 0.65rem;cursor:pointer;}
+  .list-title{font-family:'Playfair Display',serif;font-size:0.9rem;font-weight:700;line-height:1.2;}
+  .list-director{font-size:0.68rem;color:var(--text-dim);margin-top:0.15rem;}
+  .list-actors{font-size:0.65rem;color:var(--text-dimmer);padding:0 0.65rem;line-height:1.4;}
+  .list-genre{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text-dim);padding:0 0.65rem;text-transform:uppercase;letter-spacing:0.05em;}
+  .list-rating{font-family:'DM Mono',monospace;font-size:0.82rem;font-weight:500;color:var(--accent);text-align:center;padding:0 0.4rem;}
+  .list-reco{text-align:center;font-size:0.82rem;padding:0 0.4rem;}
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(5,5,10,0.9);z-index:500;display:none;align-items:center;justify-content:center;padding:2rem;backdrop-filter:blur(4px);}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);max-width:600px;width:100%;max-height:80vh;overflow-y:auto;border-radius:2px;position:relative;}
+  .modal-lang-bar{height:4px;width:100%;}
+  .modal-lang-bar.tamil{background:var(--tamil)}.modal-lang-bar.malayalam{background:var(--malayalam)}
+  .modal-body{padding:1.75rem;}
+  .modal-poster-thumb{float:right;width:95px;height:138px;object-fit:cover;object-position:top center;border-radius:2px;border:1px solid var(--border);margin:0 0 0.75rem 1.25rem;display:block;}
+  .modal-eyebrow{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--text-dimmer);text-transform:uppercase;margin-bottom:0.4rem;}
+  .modal-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;line-height:1.1;margin-bottom:0.4rem;}
+  .modal-rating-row{display:flex;align-items:center;gap:1rem;margin-bottom:0.85rem;flex-wrap:wrap;}
+  .modal-rating{font-family:'DM Mono',monospace;font-size:1.4rem;color:var(--accent);font-weight:500;}
+  .modal-rating::before{content:'★ ';font-size:0.9rem;}
+  .modal-reco-badge{font-family:'DM Mono',monospace;font-size:0.62rem;background:rgba(123,198,126,0.15);border:1px solid var(--reco);color:var(--reco);padding:0.22rem 0.55rem;border-radius:2px;letter-spacing:0.1em;text-transform:uppercase;}
+  .modal-watched-row{display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;padding:0.65rem 0.9rem;background:var(--surface2);border:1px solid var(--border);border-radius:3px;}
+  .modal-watched-label{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text-dim);flex:1;}
+  .modal-watched-toggle{display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.68rem;background:none;border:1px solid var(--border);border-radius:3px;padding:0.32rem 0.7rem;color:var(--text-dimmer);transition:all 0.15s;}
+  .modal-watched-toggle:hover{border-color:var(--watched);color:var(--watched);}
+  .modal-watched-toggle.is-watched{background:rgba(123,198,126,0.15);border-color:var(--watched);color:var(--watched);}
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;margin-bottom:1.25rem;}
+  .modal-field-label{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.2rem;}
+  .modal-field-value{font-size:0.82rem;color:var(--text);line-height:1.4;}
+  .modal-note{background:var(--surface2);border-left:3px solid var(--accent);padding:0.9rem;font-size:0.8rem;line-height:1.6;color:var(--text-dim);margin-bottom:0.9rem;font-style:italic;}
+  .modal-tags-row{display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:1.25rem;}
+  .modal-tag{font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.22rem 0.55rem;border:1px solid var(--border);border-radius:2px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em;}
+  .modal-close{position:absolute;top:0.9rem;right:0.9rem;background:none;border:1px solid var(--border);color:var(--text-dim);width:26px;height:26px;border-radius:2px;cursor:pointer;font-size:0.75rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s;z-index:10;}
+  .modal-close:hover{border-color:var(--accent2);color:var(--accent2);}
+  .no-results{text-align:center;padding:4rem 2rem;display:none;}
+  .no-results.show{display:block;}
+  .no-results-text{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--text-dimmer);margin-bottom:0.5rem;}
+  .no-results-sub{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text-dimmer);}
+  @media(max-width:900px){.main{grid-template-columns:1fr;}.sidebar{position:static;max-height:none;border-right:none;border-bottom:1px solid var(--border);padding:1.5rem 0;}.content{padding:1.5rem 0;}.list-item,.list-header{grid-template-columns:3px 32px 60px 1fr 50px 38px;}.list-actors,.list-genre{display:none;}header::after{display:none;}}
+  @media(max-width:600px){.movies-grid{grid-template-columns:1fr 1fr;}.modal-grid{grid-template-columns:1fr;}.summary-stats{grid-template-columns:1fr 1fr 1fr;}.card-poster{height:120px;}.modal-poster-thumb{width:70px;height:102px;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="eyebrow">Curated Cinema Database</div>
+    <h1>South Indian <em>Thriller</em> Explorer</h1>
+    <div class="header-meta">
+      <span><span class="dot dot-tamil"></span>Tamil</span>
+      <span><span class="dot dot-mal"></span>Malayalam</span>
+      <span><span class="dot dot-reco"></span>Editor's Pick</span>
+      <span><span class="dot dot-watched"></span>Watched</span>
+    </div>
+  </div>
+</header>
+<div class="main">
+<aside class="sidebar">
+  <div class="summary-panel">
+    <div class="summary-header" id="summaryToggleBtn">
+      <div class="summary-header-left"><span>📊</span><span>Watch Progress</span></div>
+      <span class="summary-toggle open" id="summaryArrow">▼</span>
+    </div>
+    <div class="summary-body open" id="summaryBody">
+      <div class="summary-stats">
+        <div class="stat-cell"><div class="stat-number wc" id="sumWatched">0</div><div class="stat-label">Watched</div></div>
+        <div class="stat-cell"><div class="stat-number vc" id="sumVisible">0</div><div class="stat-label">In View</div></div>
+        <div class="stat-cell"><div class="stat-number pc" id="sumPct">0%</div><div class="stat-label">Coverage</div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label-row"><span class="progress-label">Watched (selection)</span><span class="progress-label" id="sumProgLabel">0/0</span></div>
+        <div class="progress-track"><div class="progress-fill" id="sumProgFill" style="width:0%"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label-row"><span class="progress-label" id="sumAllLabelLeft">All-time</span><span class="progress-label" id="sumAllLabel">0/0</span></div>
+        <div class="progress-track"><div class="progress-fill" id="sumAllFill" style="width:0%;opacity:0.5"></div></div>
+      </div>
+      <div class="breakdown-section">
+        <div class="breakdown-title">By Language</div>
+        <div class="breakdown-rows" id="sumLangBreakdown"></div>
+      </div>
+      <div class="breakdown-section">
+        <div class="breakdown-title">By Genre</div>
+        <div class="breakdown-rows" id="sumGenreBreakdown"></div>
+      </div>
+      <div class="breakdown-section">
+        <div class="breakdown-title">Editor's Picks</div>
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;">
+          <span class="reco-pill-badge" id="sumRecoBadge">0/0</span>
+          <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text-dimmer)">watched</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="sumRecoFill" style="width:0%;background:var(--reco)"></div></div>
+      </div>
+      <div class="breakdown-section">
+        <div class="breakdown-title">Avg Rating — Watched</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.95rem;color:var(--accent);margin-top:0.2rem;" id="sumAvgRating">—</div>
+      </div>
+      <button class="clear-watched-btn" id="clearWatchedBtn">✕ Clear all watched marks</button>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" class="search-input" id="searchInput" placeholder="Search title, actor, director, tag…">
+  </div>
+  <div class="filter-section">
+    <div class="filter-title">Language</div>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="lang" data-value="all">All</button>
+      <button class="pill lang-tamil" data-filter="lang" data-value="Tamil">Tamil</button>
+      <button class="pill lang-malayalam" data-filter="lang" data-value="Malayalam">Malayalam</button>
+    </div>
+  </div>
+  <div class="filter-section">
+    <div class="filter-title">Watch Status</div>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="watched" data-value="all">All</button>
+      <button class="pill watched-filter" data-filter="watched" data-value="watched">✓ Watched</button>
+      <button class="pill watched-filter" data-filter="watched" data-value="unwatched">○ Unwatched</button>
+    </div>
+  </div>
+  <div class="filter-section">
+    <div class="filter-title">Genre / Sub-Type</div>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="genre" data-value="all">All</button>
+      <button class="pill" data-filter="genre" data-value="Crime Drama">Crime Drama</button>
+      <button class="pill" data-filter="genre" data-value="Psychological">Psychological</button>
+      <button class="pill" data-filter="genre" data-value="Police Procedural">Police</button>
+      <button class="pill" data-filter="genre" data-value="Political Thriller">Political</button>
+      <button class="pill" data-filter="genre" data-value="Gangster">Gangster</button>
+      <button class="pill" data-filter="genre" data-value="Serial Killer">Serial Killer</button>
+      <button class="pill" data-filter="genre" data-value="Action Thriller">Action Thriller</button>
+      <button class="pill" data-filter="genre" data-value="Comedy Thriller">Comedy Thriller</button>
+      <button class="pill" data-filter="genre" data-value="Social Thriller">Social/Caste</button>
+      <button class="pill" data-filter="genre" data-value="Heist">Heist/Con</button>
+      <button class="pill" data-filter="genre" data-value="Legal Thriller">Legal</button>
+      <button class="pill" data-filter="genre" data-value="Survival Thriller">Survival</button>
+    </div>
+  </div>
+  <div class="filter-section">
+    <div class="filter-title">Period</div>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="era" data-value="all">All</button>
+      <button class="pill" data-filter="era" data-value="pre-1990">Pre-1990</button>
+      <button class="pill" data-filter="era" data-value="1990s">1990s</button>
+      <button class="pill" data-filter="era" data-value="2000s">2000s</button>
+      <button class="pill" data-filter="era" data-value="2010s">2010s</button>
+      <button class="pill" data-filter="era" data-value="2020s">2020s</button>
+    </div>
+  </div>
+  <div class="filter-section">
+    <div class="filter-title">IMDB Rating</div>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="rating" data-value="all">All</button>
+      <button class="pill" data-filter="rating" data-value="9">9.0+</button>
+      <button class="pill" data-filter="rating" data-value="8.5">8.5+</button>
+      <button class="pill" data-filter="rating" data-value="8">8.0+</button>
+      <button class="pill" data-filter="rating" data-value="7.5">7.5+</button>
+    </div>
+  </div>
+  <div class="filter-section">
+    <div class="filter-title">Editor's Pick</div>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="reco" data-value="all">All</button>
+      <button class="pill" data-filter="reco" data-value="true">Must Watch ★</button>
+    </div>
+  </div>
+  <div class="filter-section">
+    <div class="filter-title">Key Actor</div>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="actor" data-value="all">All</button>
+      <button class="pill" data-filter="actor" data-value="Kamal Haasan">Kamal</button>
+      <button class="pill" data-filter="actor" data-value="Rajinikanth">Rajini</button>
+      <button class="pill" data-filter="actor" data-value="Mohanlal">Mohanlal</button>
+      <button class="pill" data-filter="actor" data-value="Mammootty">Mammootty</button>
+      <button class="pill" data-filter="actor" data-value="Dhanush">Dhanush</button>
+      <button class="pill" data-filter="actor" data-value="Suriya">Suriya</button>
+      <button class="pill" data-filter="actor" data-value="Vikram">Vikram</button>
+      <button class="pill" data-filter="actor" data-value="Vijay Sethupathi">Vijay Seth.</button>
+      <button class="pill" data-filter="actor" data-value="Fahadh Faasil">Fahadh</button>
+      <button class="pill" data-filter="actor" data-value="Prithviraj">Prithviraj</button>
+      <button class="pill" data-filter="actor" data-value="Karthi">Karthi</button>
+      <button class="pill" data-filter="actor" data-value="Tovino Thomas">Tovino</button>
+      <button class="pill" data-filter="actor" data-value="Joju George">Joju George</button>
+    </div>
+  </div>
+  <div class="filter-section">
+    <div class="filter-title">Director</div>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="director" data-value="all">All</button>
+      <button class="pill" data-filter="director" data-value="Mani Ratnam">Mani Ratnam</button>
+      <button class="pill" data-filter="director" data-value="Vetrimaaran">Vetrimaaran</button>
+      <button class="pill" data-filter="director" data-value="Lokesh Kanagaraj">Lokesh</button>
+      <button class="pill" data-filter="director" data-value="Jeethu Joseph">Jeethu Joseph</button>
+      <button class="pill" data-filter="director" data-value="K. Madhu">K. Madhu (CBI)</button>
+      <button class="pill" data-filter="director" data-value="Gautham Menon">Gautham Menon</button>
+      <button class="pill" data-filter="director" data-value="Bala">Bala</button>
+      <button class="pill" data-filter="director" data-value="Dileesh Pothan">Dileesh Pothan</button>
+      <button class="pill" data-filter="director" data-value="Karthik Subbaraj">Karthik Subbaraj</button>
+      <button class="pill" data-filter="director" data-value="K.V. Anand">K.V. Anand</button>
+      <button class="pill" data-filter="director" data-value="Priyadarshan">Priyadarshan</button>
+      <button class="pill" data-filter="director" data-value="Siddique-Lal">Siddique-Lal</button>
+      <button class="pill" data-filter="director" data-value="Pushkar-Gayatri">Pushkar-Gayatri</button>
+      <button class="pill" data-filter="director" data-value="Shankar">Shankar</button>
+      <button class="pill" data-filter="director" data-value="Pa. Ranjith">Pa. Ranjith</button>
+      <button class="pill" data-filter="director" data-value="Bharathiraja">Bharathiraja</button>
+      <button class="pill" data-filter="director" data-value="Mari Selvaraj">Mari Selvaraj</button>
+      <button class="pill" data-filter="director" data-value="Singeetam Srinivasa Rao">Singeetam</button>
+      <button class="pill" data-filter="director" data-value="Mysskin">Mysskin</button>
+    </div>
+  </div>
+  <button class="reset-btn" id="resetBtn">↺ Reset All Filters</button>
+</aside>
+<main class="content">
+  <div class="stats-bar">
+    <div class="count-display">Showing <strong id="countDisplay">0</strong> films</div>
+    <div style="display:flex;gap:1rem;align-items:center;">
+      <div class="sort-wrap">
+        <span class="sort-label">Sort</span>
+        <select class="sort-select" id="sortSelect">
+          <option value="rating-desc">Rating ↓</option>
+          <option value="rating-asc">Rating ↑</option>
+          <option value="year-desc">Newest first</option>
+          <option value="year-asc">Oldest first</option>
+          <option value="title-asc">A→Z</option>
+          <option value="watched-first">Watched first</option>
+          <option value="unwatched-first">Unwatched first</option>
+        </select>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" id="gridViewBtn" title="Grid">⊞</button>
+        <button class="view-btn" id="listViewBtn" title="List">☰</button>
+      </div>
+    </div>
+  </div>
+  <div class="no-results" id="noResults">
+    <div class="no-results-text">No films match your filters</div>
+    <div class="no-results-sub">Try broadening your selection</div>
+  </div>
+  <div class="movies-grid active" id="gridView"></div>
+  <div class="movies-list" id="listView">
+    <div class="list-header">
+      <div></div><div style="text-align:center">✓</div><div style="text-align:center">Year</div>
+      <div>Title / Director</div><div>Key Cast</div><div>Genre</div>
+      <div style="text-align:center">IMDb</div><div style="text-align:center">★</div>
+    </div>
+    <div id="listItems"></div>
+  </div>
+</main>
+</div>
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-lang-bar" id="modalLangBar"></div>
+    <div class="modal-body">
+      <img class="modal-poster-thumb" id="modalPoster" src="" alt="" style="display:none">
+      <div class="modal-eyebrow" id="modalEyebrow"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-rating-row">
+        <div class="modal-rating" id="modalRating"></div>
+        <div class="modal-reco-badge" id="modalReco" style="display:none">Editor's Pick ★</div>
+      </div>
+      <div class="modal-watched-row">
+        <span class="modal-watched-label" id="modalWatchedLabel">Mark as watched</span>
+        <button class="modal-watched-toggle" id="modalWatchedBtn">
+          <span id="modalWatchedBtnIcon">○</span>
+          <span id="modalWatchedBtnText">Not watched</span>
+        </button>
+      </div>
+      <div class="modal-note" id="modalNote" style="display:none"></div>
+      <div class="modal-grid">
+        <div><div class="modal-field-label">Director</div><div class="modal-field-value" id="modalDirector"></div></div>
+        <div><div class="modal-field-label">Year</div><div class="modal-field-value" id="modalYear"></div></div>
+        <div><div class="modal-field-label">Language</div><div class="modal-field-value" id="modalLang"></div></div>
+        <div><div class="modal-field-label">Genre</div><div class="modal-field-value" id="modalGenre"></div></div>
+        <div style="grid-column:span 2"><div class="modal-field-label">Key Cast</div><div class="modal-field-value" id="modalCast"></div></div>
+      </div>
+      <div class="modal-tags-row" id="modalTags"></div>
+    </div>
+  </div>
+</div>
+<script src="movies.js"></script>
+<script>
+// ── helpers ──────────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function getEra(year) {
+  if (year < 1990) return 'pre-1990';
+  if (year < 2000) return '1990s';
+  if (year < 2010) return '2000s';
+  if (year < 2020) return '2010s';
+  return '2020s';
+}
+
+// ── poster path — served locally, downloaded once by download-posters.js ─────
+function posterSrc(id) { return `posters/${id}.jpg`; }
+
+// ── state ─────────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'thriller_watched_v2';
+let watchedSet;
+try {
+  watchedSet = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+} catch(e) {
+  watchedSet = new Set();
+}
+
+function saveWatched() { localStorage.setItem(STORAGE_KEY, JSON.stringify([...watchedSet])); }
+
+let activeFilters = {lang:'all',genre:'all',era:'all',rating:'all',reco:'all',actor:'all',director:'all',watched:'all'};
+let searchQuery = '';
+let sortBy = 'rating-desc';
+let currentModalId = null;
+
+// ── filtering & sorting ───────────────────────────────────────────────────────
+function matchesFilters(m) {
+  if (activeFilters.lang !== 'all' && m.lang !== activeFilters.lang) return false;
+  if (activeFilters.genre !== 'all' && m.genre !== activeFilters.genre) return false;
+  if (activeFilters.era !== 'all' && getEra(m.year) !== activeFilters.era) return false;
+  if (activeFilters.rating !== 'all' && m.rating < parseFloat(activeFilters.rating)) return false;
+  if (activeFilters.reco !== 'all' && !m.reco) return false;
+  if (activeFilters.actor !== 'all' && !m.cast.includes(activeFilters.actor)) return false;
+  if (activeFilters.director !== 'all' && !m.director.includes(activeFilters.director)) return false;
+  if (activeFilters.watched === 'watched' && !watchedSet.has(m.id)) return false;
+  if (activeFilters.watched === 'unwatched' && watchedSet.has(m.id)) return false;
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    const inTags = m.tags.some(t => t.toLowerCase().includes(q));
+    if (
+      !m.title.toLowerCase().includes(q) &&
+      !m.director.toLowerCase().includes(q) &&
+      !m.cast.toLowerCase().includes(q) &&
+      !(m.note || '').toLowerCase().includes(q) &&
+      !inTags
+    ) return false;
+  }
+  return true;
+}
+
+function sortMovies(arr) {
+  return [...arr].sort((a, b) => {
+    switch (sortBy) {
+      case 'rating-desc': return b.rating - a.rating || a.title.localeCompare(b.title);
+      case 'rating-asc':  return a.rating - b.rating || a.title.localeCompare(b.title);
+      case 'year-desc':   return b.year - a.year || a.title.localeCompare(b.title);
+      case 'year-asc':    return a.year - b.year || a.title.localeCompare(b.title);
+      case 'title-asc':   return a.title.localeCompare(b.title);
+      case 'watched-first':   return (watchedSet.has(b.id)?1:0) - (watchedSet.has(a.id)?1:0) || b.rating - a.rating;
+      case 'unwatched-first': return (watchedSet.has(a.id)?1:0) - (watchedSet.has(b.id)?1:0) || b.rating - a.rating;
+      default: return 0;
+    }
+  });
+}
+
+// ── summary panel ─────────────────────────────────────────────────────────────
+function updateSummary(filtered) {
+  const total = MOVIES.length;
+  const totalW = MOVIES.filter(m => watchedSet.has(m.id)).length;
+  const visW = filtered.filter(m => watchedSet.has(m.id));
+  const vis = filtered.length;
+  const w = visW.length;
+  const pct = vis > 0 ? Math.round(w / vis * 100) : 0;
+
+  document.getElementById('sumWatched').textContent = w;
+  document.getElementById('sumVisible').textContent = vis;
+  document.getElementById('sumPct').textContent = pct + '%';
+  document.getElementById('sumProgLabel').textContent = w + '/' + vis;
+  document.getElementById('sumProgFill').style.width = pct + '%';
+  document.getElementById('sumAllLabel').textContent = totalW + '/' + total;
+  document.getElementById('sumAllLabelLeft').textContent = 'All-time (' + total + ' films)';
+  document.getElementById('sumAllFill').style.width = Math.round(totalW / total * 100) + '%';
+
+  const langs = ['Tamil','Malayalam'];
+  document.getElementById('sumLangBreakdown').innerHTML = langs.map(l => {
+    const lv = filtered.filter(m => m.lang === l);
+    const lw = lv.filter(m => watchedSet.has(m.id));
+    const p = lv.length > 0 ? Math.round(lw.length / lv.length * 100) : 0;
+    const cls = l === 'Tamil' ? 'tb' : 'mb';
+    return `<div class="breakdown-row"><div class="breakdown-key">${esc(l)}</div><div class="breakdown-bar-wrap"><div class="breakdown-bar ${cls}" style="width:${p}%"></div></div><div class="breakdown-val">${lw.length}/${lv.length}</div></div>`;
+  }).join('');
+
+  const gc = {};
+  filtered.forEach(m => {
+    if (!gc[m.genre]) gc[m.genre] = {t:0,w:0};
+    gc[m.genre].t++;
+    if (watchedSet.has(m.id)) gc[m.genre].w++;
+  });
+  document.getElementById('sumGenreBreakdown').innerHTML = Object.entries(gc)
+    .sort((a,b) => b[1].t - a[1].t)
+    .map(([g,c]) => {
+      const p = c.t > 0 ? Math.round(c.w / c.t * 100) : 0;
+      const k = g.length > 14 ? g.slice(0,13) + '…' : g;
+      return `<div class="breakdown-row"><div class="breakdown-key" title="${esc(g)}">${esc(k)}</div><div class="breakdown-bar-wrap"><div class="breakdown-bar gb" style="width:${p}%"></div></div><div class="breakdown-val">${c.w}/${c.t}</div></div>`;
+    }).join('') || '<div style="font-size:0.65rem;color:var(--text-dimmer)">No films in selection</div>';
+
+  const rv = filtered.filter(m => m.reco);
+  const rw = rv.filter(m => watchedSet.has(m.id));
+  const rp = rv.length > 0 ? Math.round(rw.length / rv.length * 100) : 0;
+  document.getElementById('sumRecoBadge').textContent = rw.length + '/' + rv.length;
+  document.getElementById('sumRecoFill').style.width = rp + '%';
+  document.getElementById('sumAvgRating').textContent = w > 0
+    ? '★ ' + (visW.reduce((s,m) => s + m.rating, 0) / w).toFixed(2)
+    : '—';
+}
+
+// ── render ────────────────────────────────────────────────────────────────────
+function render() {
+  const filtered = sortMovies(MOVIES.filter(matchesFilters));
+  document.getElementById('countDisplay').textContent = filtered.length;
+  document.getElementById('noResults').classList.toggle('show', filtered.length === 0);
+  updateSummary(filtered);
+
+  const grid = document.getElementById('gridView');
+  grid.innerHTML = '';
+  filtered.forEach(m => {
+    const isW = watchedSet.has(m.id);
+    const card = document.createElement('div');
+    card.className = 'movie-card' + (isW ? ' is-watched' : '');
+    card.innerHTML = `<div class="card-lang-bar ${esc(m.lang.toLowerCase())}"></div>
+      <div class="card-poster">
+        <img src="${esc(posterSrc(m.id))}" alt="" loading="lazy"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="card-poster-placeholder" style="display:none">
+          <span class="card-poster-placeholder-icon">🎬</span>
+        </div>
+      </div>
+      <div class="card-content">
+        <div class="card-top-row">
+          <div class="card-year">${esc(String(m.year))}</div>
+          <div class="card-watch-wrap">
+            <span class="watched-badge">✓</span>
+            <span class="card-watch-label">${isW ? 'Watched' : 'Watch'}</span>
+            <input type="checkbox" class="watch-checkbox" data-id="${esc(String(m.id))}" ${isW ? 'checked' : ''}>
+          </div>
+        </div>
+        <div class="card-title">${esc(m.title)}</div>
+        <div class="card-director">${esc(m.director)}</div>
+        <div class="card-tags">${m.tags.slice(0,3).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+        <div class="card-bottom">
+          <div class="card-rating">${esc(m.rating.toFixed(1))}</div>
+          ${m.reco ? '<div class="reco-star">★ Pick</div>' : ''}
+        </div>
+      </div>`;
+    card.querySelector('.watch-checkbox').addEventListener('click', e => { e.stopPropagation(); toggleWatched(m.id); });
+    card.querySelector('.card-watch-wrap').addEventListener('click', e => e.stopPropagation());
+    card.querySelector('.card-poster').addEventListener('click', () => openModal(m));
+    card.querySelector('.card-content').addEventListener('click', () => openModal(m));
+    grid.appendChild(card);
+  });
+
+  const listItems = document.getElementById('listItems');
+  listItems.innerHTML = '';
+  filtered.forEach(m => {
+    const isW = watchedSet.has(m.id);
+    const row = document.createElement('div');
+    row.className = 'list-item' + (isW ? ' is-watched' : '');
+    row.innerHTML = `<div class="list-lang-bar ${esc(m.lang.toLowerCase())}"></div>
+      <div class="list-check"><input type="checkbox" class="watch-checkbox" data-id="${esc(String(m.id))}" ${isW ? 'checked' : ''}></div>
+      <div class="list-year">${esc(String(m.year))}</div>
+      <div class="list-title-wrap"><div class="list-title">${esc(m.title)}</div><div class="list-director">${esc(m.director)}</div></div>
+      <div class="list-actors">${esc(m.cast.split(',').slice(0,2).join(', '))}</div>
+      <div class="list-genre">${esc(m.genre)}</div>
+      <div class="list-rating">${esc(m.rating.toFixed(1))}</div>
+      <div class="list-reco">${m.reco ? '<span style="color:var(--reco)">★</span>' : ''}</div>`;
+    row.querySelector('.watch-checkbox').addEventListener('click', e => { e.stopPropagation(); toggleWatched(m.id); });
+    row.querySelector('.list-check').addEventListener('click', e => e.stopPropagation());
+    row.querySelector('.list-title-wrap').addEventListener('click', () => openModal(m));
+    listItems.appendChild(row);
+  });
+}
+
+// ── watched toggle ────────────────────────────────────────────────────────────
+function toggleWatched(id) {
+  if (watchedSet.has(id)) watchedSet.delete(id); else watchedSet.add(id);
+  saveWatched();
+  render();
+  if (currentModalId === id) refreshModalBtn(id);
+}
+
+// ── modal ─────────────────────────────────────────────────────────────────────
+function openModal(m) {
+  currentModalId = m.id;
+  const poster = document.getElementById('modalPoster');
+  poster.src = posterSrc(m.id);
+  poster.style.display = 'block';
+  poster.onerror = () => { poster.style.display = 'none'; };
+  document.getElementById('modalLangBar').className = 'modal-lang-bar ' + m.lang.toLowerCase();
+  document.getElementById('modalEyebrow').textContent = m.lang + ' · ' + m.year + ' · ' + m.genre;
+  document.getElementById('modalTitle').textContent = m.title;
+  document.getElementById('modalRating').textContent = m.rating.toFixed(1);
+  document.getElementById('modalReco').style.display = m.reco ? 'inline-block' : 'none';
+  const note = document.getElementById('modalNote');
+  if (m.note) { note.style.display = 'block'; note.textContent = m.note; } else note.style.display = 'none';
+  document.getElementById('modalDirector').textContent = m.director;
+  document.getElementById('modalYear').textContent = m.year;
+  document.getElementById('modalLang').textContent = m.lang;
+  document.getElementById('modalGenre').textContent = m.genre;
+  document.getElementById('modalCast').textContent = m.cast;
+  document.getElementById('modalTags').innerHTML = m.tags.map(t => `<span class="modal-tag">${esc(t)}</span>`).join('');
+  refreshModalBtn(m.id);
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function refreshModalBtn(id) {
+  const isW = watchedSet.has(id);
+  const btn = document.getElementById('modalWatchedBtn');
+  document.getElementById('modalWatchedBtnIcon').textContent = isW ? '✓' : '○';
+  document.getElementById('modalWatchedBtnText').textContent = isW ? 'Watched' : 'Not watched';
+  btn.classList.toggle('is-watched', isW);
+  document.getElementById('modalWatchedLabel').textContent = isW ? 'Marked as watched' : 'Mark as watched';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  currentModalId = null;
+}
+
+// ── event listeners ───────────────────────────────────────────────────────────
+document.getElementById('modalWatchedBtn').addEventListener('click', () => {
+  if (currentModalId !== null) toggleWatched(currentModalId);
+});
+
+document.querySelectorAll('.pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    const f = pill.dataset.filter, v = pill.dataset.value;
+    activeFilters[f] = v;
+    pill.closest('.filter-pills').querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    render();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', e => { searchQuery = e.target.value.trim(); render(); });
+document.getElementById('sortSelect').addEventListener('change', e => { sortBy = e.target.value; render(); });
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  activeFilters = {lang:'all',genre:'all',era:'all',rating:'all',reco:'all',actor:'all',director:'all',watched:'all'};
+  searchQuery = '';
+  sortBy = 'rating-desc';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('sortSelect').value = 'rating-desc';
+  document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.value === 'all'));
+  render();
+});
+
+document.getElementById('clearWatchedBtn').addEventListener('click', () => {
+  if (confirm('Clear all watched marks? This cannot be undone.')) { watchedSet.clear(); saveWatched(); render(); }
+});
+
+document.getElementById('gridViewBtn').addEventListener('click', () => {
+  document.getElementById('gridView').classList.add('active');
+  document.getElementById('listView').classList.remove('active');
+  document.getElementById('gridViewBtn').classList.add('active');
+  document.getElementById('listViewBtn').classList.remove('active');
+});
+
+document.getElementById('listViewBtn').addEventListener('click', () => {
+  document.getElementById('listView').classList.add('active');
+  document.getElementById('gridView').classList.remove('active');
+  document.getElementById('listViewBtn').classList.add('active');
+  document.getElementById('gridViewBtn').classList.remove('active');
+});
+
+document.getElementById('summaryToggleBtn').addEventListener('click', () => {
+  document.getElementById('summaryBody').classList.toggle('open');
+  document.getElementById('summaryArrow').classList.toggle('open');
+});
+
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === document.getElementById('modalOverlay')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+render();
+</script>
+</body>
+</html>
