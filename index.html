@@ -168,6 +168,16 @@
   .no-results.show{display:block;}
   .no-results-text{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--text-dimmer);margin-bottom:0.5rem;}
   .no-results-sub{font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text-dimmer);}
+  /* OTT */
+  .card-ott{position:absolute;bottom:5px;right:5px;display:flex;gap:3px;z-index:2;flex-wrap:wrap;justify-content:flex-end;}
+  .ott-pill{display:inline-flex;align-items:center;background:rgba(255,255,255,0.93);border-radius:3px;padding:2px 5px;height:18px;}
+  .ott-pill img{height:12px;width:auto;max-width:52px;object-fit:contain;display:block;}
+  .modal-ott-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0.85rem;}
+  .modal-ott-pill{display:inline-flex;align-items:center;background:white;border-radius:4px;padding:4px 10px;height:32px;border:1px solid var(--border);}
+  .modal-ott-pill img{height:18px;width:auto;max-width:110px;object-fit:contain;display:block;}
+  .list-ott{display:flex;align-items:center;gap:3px;padding:0 0.4rem;}
+  .list-ott-pill{display:inline-flex;align-items:center;background:rgba(255,255,255,0.9);border-radius:2px;padding:1px 4px;height:14px;}
+  .list-ott-pill img{height:10px;width:auto;max-width:42px;object-fit:contain;}
   @media(max-width:900px){.main{grid-template-columns:1fr;}.sidebar{position:static;max-height:none;border-right:none;border-bottom:1px solid var(--border);padding:1.5rem 0;}.content{padding:1.5rem 0;}.list-item,.list-header{grid-template-columns:3px 32px 60px 1fr 50px 38px;}.list-actors,.list-genre{display:none;}header::after{display:none;}}
   @media(max-width:600px){.movies-grid{grid-template-columns:1fr 1fr;}.modal-grid{grid-template-columns:1fr;}.summary-stats{grid-template-columns:1fr 1fr 1fr;}.card-poster{height:120px;}.modal-poster-thumb{width:70px;height:102px;}}
 </style>
@@ -356,6 +366,18 @@
       <button class="pill" data-filter="director" data-value="Mysskin">Mysskin</button>
     </div>
   </div>
+  <div class="filter-section">
+    <div class="filter-title">OTT Platform</div>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="ott" data-value="all">All</button>
+      <button class="pill ott-pill-btn" data-filter="ott" data-value="Prime Video"><img src="ott-logos/prime-video.svg" alt="Prime Video" style="height:11px;vertical-align:middle;margin-right:3px;"> Prime</button>
+      <button class="pill ott-pill-btn" data-filter="ott" data-value="Netflix"><img src="ott-logos/netflix.svg" alt="Netflix" style="height:11px;vertical-align:middle;margin-right:3px;"> Netflix</button>
+      <button class="pill ott-pill-btn" data-filter="ott" data-value="JioHotstar"><img src="ott-logos/jiohotstar.svg" alt="JioHotstar" style="height:11px;vertical-align:middle;margin-right:3px;"> Hotstar</button>
+      <button class="pill ott-pill-btn" data-filter="ott" data-value="SonyLIV"><img src="ott-logos/sonyliv.png" alt="SonyLIV" style="height:11px;vertical-align:middle;margin-right:3px;"> SonyLIV</button>
+      <button class="pill ott-pill-btn" data-filter="ott" data-value="SunNXT"><img src="ott-logos/sunnxt.svg" alt="SunNXT" style="height:11px;vertical-align:middle;margin-right:3px;"> SunNXT</button>
+      <button class="pill ott-pill-btn" data-filter="ott" data-value="Zee5"><img src="ott-logos/zee5.svg" alt="Zee5" style="height:11px;vertical-align:middle;margin-right:3px;"> Zee5</button>
+    </div>
+  </div>
   <button class="reset-btn" id="resetBtn">↺ Reset All Filters</button>
 </aside>
 <main class="content">
@@ -424,12 +446,39 @@
         <div style="grid-column:span 2"><div class="modal-field-label">Key Cast</div><div class="modal-field-value" id="modalCast"></div></div>
       </div>
       <div class="modal-tags-row" id="modalTags"></div>
+      <div id="modalOttRow" style="margin-bottom:0.85rem;display:none">
+        <div class="modal-field-label" style="margin-bottom:0.45rem">Available On</div>
+        <div class="modal-ott-row" id="modalOttLogos"></div>
+      </div>
       <div class="modal-links" id="modalLinks"></div>
     </div>
   </div>
 </div>
 <script src="movies.js"></script>
 <script>
+// ── OTT logo map ──────────────────────────────────────────────────────────────
+const OTT_LOGOS = {
+  'Prime Video':  'ott-logos/prime-video.svg',
+  'Netflix':      'ott-logos/netflix.svg',
+  'JioHotstar':   'ott-logos/jiohotstar.svg',
+  'SonyLIV':      'ott-logos/sonyliv.png',
+  'SunNXT':       'ott-logos/sunnxt.svg',
+  'Zee5':         'ott-logos/zee5.svg',
+};
+
+function ottPlatforms(m) {
+  if (!m.ott) return [];
+  return m.ott.split(' / ').map(s => s.trim());
+}
+
+function ottBadgeHtml(m, pillCls, imgStyle) {
+  return ottPlatforms(m).map(p => {
+    const src = OTT_LOGOS[p];
+    if (!src) return '';
+    return `<span class="${pillCls}"><img src="${esc(src)}" alt="${esc(p)}" style="${imgStyle}"></span>`;
+  }).join('');
+}
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 function esc(str) {
   return String(str)
@@ -459,7 +508,7 @@ try {
 
 function saveWatched() { localStorage.setItem(STORAGE_KEY, JSON.stringify([...watchedSet])); }
 
-let activeFilters = {lang:'all',genre:'all',era:'all',rating:'all',reco:'all',actor:'all',director:'all',watched:'all',tag:'all'};
+let activeFilters = {lang:'all',genre:'all',era:'all',rating:'all',reco:'all',actor:'all',director:'all',watched:'all',tag:'all',ott:'all'};
 let searchQuery = '';
 let sortBy = 'rating-desc';
 let currentModalId = null;
@@ -475,6 +524,7 @@ function matchesFilters(m) {
   if (activeFilters.director !== 'all' && !m.director.includes(activeFilters.director)) return false;
   if (activeFilters.watched === 'watched' && !watchedSet.has(m.id)) return false;
   if (activeFilters.watched === 'unwatched' && watchedSet.has(m.id)) return false;
+  if (activeFilters.ott !== 'all' && !ottPlatforms(m).includes(activeFilters.ott)) return false;
   if (activeFilters.tag !== 'all') {
     const tv = activeFilters.tag.toLowerCase();
     const hit = m.tags.some(t => {
@@ -587,6 +637,7 @@ function render() {
         <div class="card-poster-placeholder" style="display:none">
           <span class="card-poster-placeholder-icon">🎬</span>
         </div>
+        ${m.ott ? `<div class="card-ott">${ottBadgeHtml(m,'ott-pill','height:12px;width:auto;max-width:52px;object-fit:contain;display:block;')}</div>` : ''}
       </div>
       <div class="card-content">
         <div class="card-top-row">
@@ -661,6 +712,14 @@ function openModal(m) {
   document.getElementById('modalGenre').textContent = m.genre;
   document.getElementById('modalCast').textContent = m.cast;
   document.getElementById('modalTags').innerHTML = m.tags.map(t => `<span class="modal-tag">${esc(t)}</span>`).join('');
+  const ottRow = document.getElementById('modalOttRow');
+  const ottLogos = document.getElementById('modalOttLogos');
+  if (m.ott) {
+    ottLogos.innerHTML = ottBadgeHtml(m, 'modal-ott-pill', 'height:18px;width:auto;max-width:110px;object-fit:contain;display:block;');
+    ottRow.style.display = 'block';
+  } else {
+    ottRow.style.display = 'none';
+  }
   const wikiUrl  = m.wiki ? `https://en.wikipedia.org/wiki/${encodeURIComponent(m.wiki.replace(/ /g,'_'))}` : null;
   const imdbUrl  = m.imdb
     ? `https://www.imdb.com/title/${esc(m.imdb)}/`
@@ -707,7 +766,7 @@ document.getElementById('searchInput').addEventListener('input', e => { searchQu
 document.getElementById('sortSelect').addEventListener('change', e => { sortBy = e.target.value; render(); });
 
 document.getElementById('resetBtn').addEventListener('click', () => {
-  activeFilters = {lang:'all',genre:'all',era:'all',rating:'all',reco:'all',actor:'all',director:'all',watched:'all',tag:'all'};
+  activeFilters = {lang:'all',genre:'all',era:'all',rating:'all',reco:'all',actor:'all',director:'all',watched:'all',tag:'all',ott:'all'};
   searchQuery = '';
   sortBy = 'rating-desc';
   document.getElementById('searchInput').value = '';
